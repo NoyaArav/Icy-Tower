@@ -20,6 +20,8 @@
         const ctx = canvas.getContext('2d');
         const backgroundImage = new Image();
         backgroundImage.src = 'backgroundIcyTower.png'; 
+        const enemyImage = new Image();
+        enemyImage.src = 'enemy.png';
 
         // Game settings
         const gravity = 0.5;
@@ -81,7 +83,7 @@
             if (Math.random() > 0.95) {
                 let type = Math.random() < 0.5 ? 'type1' : 'type2'; // 50% chance for each type
                 let x = type === 'type1' ? (100 - 20) / 2 : 0;
-                return { type: type, x: x, y: 0, width: 20, height: 20, moveDirection: 1 };
+                return { type: type, x: x, y: 0, width: 40, height: 40, moveDirection: 1 };
             }
             return null; // No enemy generated
         }
@@ -351,6 +353,8 @@
                 
             });
 
+            // Filter out platforms that have fallen below the canvas
+            platforms = platforms.filter(platform => platform.y <= canvas.height);
             
 
 
@@ -377,9 +381,10 @@
                 // Check if the platform has an enemy
                 if(platform.enemy) {
                     let enemy = platform.enemy;
+                    ctx.drawImage(enemyImage, platform.x + enemy.x, platform.y - enemy.height + 3, enemy.width, enemy.height);
                     //ctx.fillStyle = 'black'; // Enemy color
-                    ctx.fillStyle = enemy.type === 'type1' ? 'green' : 'orange';
-                    ctx.fillRect(platform.x + enemy.x, platform.y - enemy.height, enemy.width, enemy.height);
+                    //ctx.fillStyle = enemy.type === 'type1' ? 'green' : 'orange';
+                    //ctx.fillRect(platform.x + enemy.x, platform.y - enemy.height, enemy.width, enemy.height);
 
                     // Initial position if not set
                     //if (enemy.x === 0) {
