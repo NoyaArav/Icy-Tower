@@ -18,6 +18,8 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const backgroundImage = new Image();
+        backgroundImage.src = 'backgroundIcyTower.png'; 
 
         // Game settings
         const gravity = 0.5;
@@ -43,7 +45,7 @@
         };
 
         // Platform generation settings
-        const platformHeight = 10;  // Height of each platform
+        const platformHeight = 15;  // Height of each platform
         const gapInCm = 2;  // Gap between platforms in cm
         const gapInPixels = 75.6;  // Fixed gap in pixels (assuming 2 cm gap at 96 ppi)
 
@@ -117,6 +119,7 @@
         
         function displayGameOver() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
         
             const scoresCount = 10; // Assuming you always want to show 10 scores
             const entryHeight = 30; // Reduced entry height
@@ -353,6 +356,8 @@
 
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
 
             // Draw player
             ctx.fillStyle = 'red';
