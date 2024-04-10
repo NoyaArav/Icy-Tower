@@ -27,6 +27,7 @@
         let lastPlatformIndex = -1; // Tracks the last platform index the player was on
         let is_dead = false;
         let screen_scrolled = false;
+        let top_scores = []; // top scores for the leaderboard
 
 
         // Player
@@ -83,39 +84,83 @@
             return null; // No enemy generated
         }
 
-        function displayGameOver() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); 
-            //ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+        function updateLeaderboard(new_score) {
+            top_scores.push(new_score);
+            top_scores.sort((a, b) => b - a); // We want the scores to be displayed from the highest to the lowest
+            top_scores = top_scores.slice(0, 10); // Keep only top 10 scores
+        }
 
-            // Draw white background for text
-            ctx.fillStyle = 'white';
-            ctx.fillRect(canvas.width / 2 - 140, canvas.height / 2 - 70, 280, 300); 
-
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
+        function displayLeaderboard() {
+            const boardStartY = canvas.height / 2 - 180; // Adjusted to fit within the screen
+            const entryHeight = 30; // Reduced entry height for compactness
+            const boardColor = '#f0f8ff'; // Light blue background for the leaderboard
+            const textColor = '#333'; // Dark text for better readability
+            const boardHeaderColor = '#6495ed'; // Cornflower blue for the header
         
-            // Show the 'Play again' button
+            // Adjusted font size for leaderboard header and entries
+            ctx.font = 'bold 18px "Comic Sans MS", cursive, sans-serif';
+            ctx.fillStyle = boardHeaderColor;
+            ctx.fillRect(canvas.width / 2 - 150, boardStartY, 300, entryHeight);
+            ctx.fillStyle = 'white';
+            ctx.fillText('Top Scores:', canvas.width / 2, boardStartY + 20);
+        
+            // Adjusted font size for leaderboard entries
+            ctx.font = '16px "Comic Sans MS", cursive, sans-serif';
+            top_scores.forEach((score, index) => {
+                const entryStartY = boardStartY + entryHeight + (index * entryHeight);
+                ctx.fillStyle = boardColor;
+                ctx.fillRect(canvas.width / 2 - 150, entryStartY, 300, entryHeight);
+                ctx.fillStyle = textColor;
+                ctx.fillText(`${index + 1}. ${score} points`, canvas.width / 2, entryStartY + 20);
+            });
+        }
+        
+        function displayGameOver() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+            const scoresCount = 10; // Assuming you always want to show 10 scores
+            const entryHeight = 30; // Reduced entry height
+            const boardStartY = canvas.height / 2 - 180; // Adjusted starting Y position
+            const leaderboardHeight = entryHeight * (scoresCount + 1); // +1 for the header
+            const totalHeight = leaderboardHeight + (2 * entryHeight); // Extra space for button
+        
+            // Adjust rectangle size to fit the reduced sizes
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillRect(canvas.width / 2 - 150, boardStartY - entryHeight, 300, totalHeight);
+        
+            // Adjusted font size for "GAME OVER" text
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 24px "Comic Sans MS", cursive, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width / 2, boardStartY - 50);
+        
+            // Adjust the 'Play Again' button position and size
+            const buttonYPosition = boardStartY + totalHeight - entryHeight;
+        
             const button = document.createElement('button');
             button.innerText = 'Play Again';
             button.style.position = 'absolute';
             button.style.left = '50%';
-            button.style.top = '70%';
+            button.style.top = `${buttonYPosition}px`;
             button.style.transform = 'translate(-50%, -50%)';
-            button.style.width = '150px'; // Width of the button
-            button.style.height = '50px'; // Height of the button
-            button.style.fontSize = '20px'; // Font size of the text on the button
-            button.style.padding = '10px 20px'; // Padding inside the button
+            button.style.width = '160px'; // Adjusted width
+            button.style.height = '40px'; // Adjusted height
+            button.style.fontFamily = '"Comic Sans MS", cursive, sans-serif';
+            button.style.fontSize = '18px'; // Adjusted font size
+            button.style.background = '#6495ed';
+            button.style.padding = '5px 10px'; // Adjusted padding
+            button.style.borderRadius = '8px'; // Adjusted border radius
             button.style.cursor = 'pointer'; // Cursor to pointer to indicate it's clickable
+            // Other styles remain the same
             document.body.appendChild(button);
             button.onclick = () => {
                 document.body.removeChild(button);
                 restartGame();
             };
         
-            //displayLeaderboard();
+            displayLeaderboard();
         }
+        
         
         function restartGame() {
             // Reset game state
@@ -126,6 +171,7 @@
             lastPlatformIndex = 0; // Reset this as well
             platformIndex = 1; // Reset platform index
             screen_scrolled = false;
+
             platforms = []; // Clear the platforms array
             for(let i = 0; i < 10; i++) { // Recreate the platforms
                 platforms.push({
@@ -160,6 +206,7 @@
         function updateGame() {
 
             if (is_dead || screen_scrolled == true && player.y >= canvas.height - player.height) {
+                updateLeaderboard(score); // Add the current game points to the calculation of the leader board
                 displayGameOver();
                 return; // Stop the game loop
             }
@@ -222,6 +269,7 @@
 
                     // Check for collision
                     if (
+                        is_dead == false &&
                         player.x < platform.x + platform.enemy.x + platform.enemy.width &&
                         player.x + player.width > platform.x + platform.enemy.x &&
                         player.y < platform.y + platform.enemy.y + platform.enemy.height &&
