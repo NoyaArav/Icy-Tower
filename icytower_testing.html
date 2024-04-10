@@ -26,6 +26,7 @@
         let score = 0; // Initialize score
         let lastPlatformIndex = -1; // Tracks the last platform index the player was on
         let is_dead = false;
+        let screen_scrolled = false;
 
 
         // Player
@@ -124,6 +125,7 @@
             score = 0;
             lastPlatformIndex = 0; // Reset this as well
             platformIndex = 1; // Reset platform index
+            screen_scrolled = false;
             platforms = []; // Clear the platforms array
             for(let i = 0; i < 10; i++) { // Recreate the platforms
                 platforms.push({
@@ -157,7 +159,7 @@
         // Game loop function
         function updateGame() {
 
-            if (is_dead) {
+            if (is_dead || screen_scrolled == true && player.y >= canvas.height - player.height) {
                 displayGameOver();
                 return; // Stop the game loop
             }
@@ -185,6 +187,7 @@
             // Implement screen scroll: when player reaches 1/4 of the screen height, scroll up
             if (player.y < canvas.height / 4) {
                 player.y += Math.abs(player.velY);
+                screen_scrolled = true;
                 // Move platforms down and recycle off-screen platforms
                 platforms.forEach(platform => {
                     platform.y += Math.abs(player.velY);
@@ -198,6 +201,10 @@
                         platform.enemy = generateEnemy();
                     }
                 });
+            }
+
+            if (screen_scrolled && player.y > canvas.height) {
+                is_dead = true; // The player died from falling
             }
 
             // Collision detection with enemies
