@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Platformer Game with Screen Scroll</title>
     <style>
-        body, html { margin: 0; padding: 0; overflow: hidden; }
+        body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         #gameCanvas { background-color: #87CEEB; }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <canvas id="gameCanvas" width="600" height="650"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -49,32 +53,93 @@
 
         // Platforms
         let platforms = [];
-        for(let i = 0; i < 20; i++) {
+        for(let i = 0; i < 10; i++) {
             let hasEnemy = false;
             let enemyType = null;
             let enemy = null;
-
-            // Ensure 5% (1 in every 20 platforms) have an enemy
-            if (i % 20 === 19) { // Adjust based on your platform generation logic
-                hasEnemy = true;
-                enemyType = (Math.random() < 0.5) ? 'type1' : 'type2'; // 50% chance for each type
-                enemy = { type: enemyType, x: 0, movingRight: true }; // Basic enemy object, adjust as needed
-            }
+    
             platforms.push({
                 x: Math.random() * (canvas.width - 50),
                 y: initialPlatformY - (gapInPixels + platformHeight) * i,
-                width: 100,
+                width: 150,
                 height: platformHeight,
                 index: platformIndex++,
                 score_been_used: false,
                 timeOnPlatform: 0,
                 falling: false,
                 hasEnemy: hasEnemy, // Indicates if this platform has an enemy
-                enemy: enemy // Stores enemy details
+                enemy: generateEnemy()
             });
         }
 
+        function generateEnemy() {
+            // Only create an enemy with a 5% chance
+            if (Math.random() > 0.95) {
+                let type = Math.random() < 0.5 ? 'type1' : 'type2'; // 50% chance for each type
+                let x = type === 'type1' ? (100 - 20) / 2 : 0;
+                return { type: type, x: x, y: 0, width: 20, height: 20, moveDirection: 1 };
+            }
+            return null; // No enemy generated
+        }
+
+        function displayGameOver() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            //ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+            // Draw white background for text
+            ctx.fillStyle = 'white';
+            ctx.fillRect(canvas.width / 2 - 140, canvas.height / 2 - 70, 280, 300); 
+
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
         
+            // Show the 'Play again' button
+            const button = document.createElement('button');
+            button.innerText = 'Play Again';
+            button.style.position = 'absolute';
+            button.style.left = '50%';
+            button.style.top = '70%';
+            button.style.transform = 'translate(-50%, -50%)';
+            button.style.width = '150px'; // Width of the button
+            button.style.height = '50px'; // Height of the button
+            button.style.fontSize = '20px'; // Font size of the text on the button
+            button.style.padding = '10px 20px'; // Padding inside the button
+            button.style.cursor = 'pointer'; // Cursor to pointer to indicate it's clickable
+            document.body.appendChild(button);
+            button.onclick = () => {
+                document.body.removeChild(button);
+                restartGame();
+            };
+        
+            //displayLeaderboard();
+        }
+        
+        function restartGame() {
+            // Reset game state
+            is_dead = false;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 20;
+            score = 0;
+            lastPlatformIndex = 0; // Reset this as well
+            platformIndex = 1; // Reset platform index
+            platforms = []; // Clear the platforms array
+            for(let i = 0; i < 10; i++) { // Recreate the platforms
+                platforms.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: initialPlatformY - (gapInPixels + platformHeight) * i,
+                    width: 150,
+                    height: platformHeight,
+                    index: platformIndex++,
+                    score_been_used: false, 
+                    timeOnPlatform: 0,
+                    falling: false,
+                    enemy: generateEnemy()
+                });
+            }
+            updateGame(); // Start the game loop again
+        }        
 
         // Key Listener - keyboard input
         let keys = [];
@@ -93,15 +158,7 @@
         function updateGame() {
 
             if (is_dead) {
-                // Clear the screen
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Display "GAME OVER"
-                ctx.fillStyle = 'black';
-                ctx.font = '48px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-                
+                displayGameOver();
                 return; // Stop the game loop
             }
 
@@ -138,22 +195,32 @@
                         platform.y = highestPlatformY - (gapInPixels + platformHeight) % canvas.height;
                         platform.x = Math.random() * (canvas.width - platform.width);
                         platform.timeOnPlatform = 0; // Reset the time on platform
+                        platform.enemy = generateEnemy();
                     }
                 });
             }
 
             // Collision detection with enemies
             platforms.forEach(platform => {
-                if(platform.hasEnemy && platform.enemy) {
+                if(platform.enemy) {
+                    if (platform.enemy.type === 'type2') {
+                        platform.enemy.x += platform.enemy.moveDirection * 2; // Adjust speed as necessary
+                        if (platform.enemy.x > platform.width - platform.enemy.width || platform.enemy.x < 0) {
+                            platform.enemy.moveDirection *= -1;
+                        }
+                    }
+                    
                     let enemyX = platform.enemy.x;
                     let enemyY = platform.y - player.height; // Since enemies are drawn just above the platform
 
                     // Check for collision
-                    if (player.x < enemyX + player.width &&
-                        player.x + player.width > enemyX &&
-                        player.y < enemyY + player.height &&
-                        player.y + player.height > enemyY) {
-                        is_dead = true; // Player touches the enemy
+                    if (
+                        player.x < platform.x + platform.enemy.x + platform.enemy.width &&
+                        player.x + player.width > platform.x + platform.enemy.x &&
+                        player.y < platform.y + platform.enemy.y + platform.enemy.height &&
+                        player.y + player.height > platform.y + platform.enemy.y
+                    ) {
+                        is_dead = true;
                     }
                 }
             });
@@ -248,33 +315,35 @@
                     ctx.fillText(platform.index, platform.x + platform.width / 2, platform.y + platform.height / 2 + 4);
                 }
                 // Check if the platform has an enemy
-                if(platform.hasEnemy && platform.enemy) {
+                if(platform.enemy) {
                     let enemy = platform.enemy;
-                    ctx.fillStyle = 'black'; // Enemy color
+                    //ctx.fillStyle = 'black'; // Enemy color
+                    ctx.fillStyle = enemy.type === 'type1' ? 'green' : 'orange';
+                    ctx.fillRect(platform.x + enemy.x, platform.y - enemy.height, enemy.width, enemy.height);
 
                     // Initial position if not set
-                    if (enemy.x === 0) {
-                        enemy.x = platform.x + (platform.width / 2) - (player.width / 2); // Center on platform initially
-                    }
+                    //if (enemy.x === 0) {
+                    //    enemy.x = platform.x + (platform.width / 2) - (player.width / 2); // Center on platform initially
+                    //}
 
-                    ctx.fillRect(enemy.x, platform.y - player.height, player.width, player.height);
+                    //ctx.fillRect(enemy.x, platform.y - player.height, player.width, player.height);
 
-                    if(platform.enemy.type == 'type2') {
-                        const enemySpeed = 5.009;
-                        if (enemy.movingRight) {
-                            if (enemy.x + player.width + enemySpeed <= platform.x + platform.width) {
-                                enemy.x += enemySpeed; // Move right
-                            } else {
-                                enemy.movingRight = false; // Change direction
-                            }
-                        } else {
-                            if (enemy.x - enemySpeed >= platform.x) {
-                                enemy.x -= enemySpeed; // Move left
-                            } else {
-                                enemy.movingRight = true; // Change direction
-                            }
-                        }
-                    }
+                    //if(platform.enemy.type == 'type2') {
+                    //  const enemySpeed = 5.009;
+                      //  if (enemy.movingRight) {
+                        //    if (enemy.x + player.width + enemySpeed <= platform.x + platform.width) {
+                          //      enemy.x += enemySpeed; // Move right
+                            //} else {
+                              //  enemy.movingRight = false; // Change direction
+                            //}
+                        //} else {
+                          //  if (enemy.x - enemySpeed >= platform.x) {
+                            //    enemy.x -= enemySpeed; // Move left
+                            //} else {
+                            //    enemy.movingRight = true; // Change direction
+                           // }
+                       // }
+                   // }
                 }
         
             });
@@ -286,6 +355,7 @@
 
             requestAnimationFrame(updateGame);
         }
+
 
         updateGame();
     </script>
