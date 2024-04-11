@@ -22,6 +22,10 @@
         backgroundImage.src = 'backgroundIcyTower.png'; 
         const enemyImage = new Image();
         enemyImage.src = 'enemy.png';
+        const playerImage = new Image();
+        playerImage.src = 'playerImage4.jpg';
+        const platformsImage = new Image();
+        platformsImage.src = 'platformImage.jpg';
 
         // Game settings
         const gravity = 0.5;
@@ -38,8 +42,8 @@
         let player = {
             x: canvas.width / 2,
             y: canvas.height - 150,
-            width: 20,
-            height: 20,
+            width: 40,
+            height: 40,
             speed: 5,
             velX: 0,
             velY: 0,
@@ -47,7 +51,7 @@
         };
 
         // Platform generation settings
-        const platformHeight = 15;  // Height of each platform
+        const platformHeight = 17;  // Height of each platform
         const gapInCm = 2;  // Gap between platforms in cm
         const gapInPixels = 75.6;  // Fixed gap in pixels (assuming 2 cm gap at 96 ppi)
 
@@ -364,13 +368,15 @@
 
 
             // Draw player
-            ctx.fillStyle = 'red';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+            //ctx.fillStyle = 'red';
+            //ctx.fillRect(player.x, player.y, player.width, player.height);
 
             // Draw platforms and possibly enemies
             platforms.forEach(platform => {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                ctx.drawImage(platformsImage, platform.x, platform.y, platform.width, platform.height);
+                //ctx.fillStyle = 'black';
+                //ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
                 // Draw text label on platforms divisible by 10
                 if (platform.index % 10 === 0) {
                     ctx.fillStyle = 'white';
@@ -382,33 +388,7 @@
                 if(platform.enemy) {
                     let enemy = platform.enemy;
                     ctx.drawImage(enemyImage, platform.x + enemy.x, platform.y - enemy.height + 3, enemy.width, enemy.height);
-                    //ctx.fillStyle = 'black'; // Enemy color
-                    //ctx.fillStyle = enemy.type === 'type1' ? 'green' : 'orange';
-                    //ctx.fillRect(platform.x + enemy.x, platform.y - enemy.height, enemy.width, enemy.height);
-
-                    // Initial position if not set
-                    //if (enemy.x === 0) {
-                    //    enemy.x = platform.x + (platform.width / 2) - (player.width / 2); // Center on platform initially
-                    //}
-
-                    //ctx.fillRect(enemy.x, platform.y - player.height, player.width, player.height);
-
-                    //if(platform.enemy.type == 'type2') {
-                    //  const enemySpeed = 5.009;
-                      //  if (enemy.movingRight) {
-                        //    if (enemy.x + player.width + enemySpeed <= platform.x + platform.width) {
-                          //      enemy.x += enemySpeed; // Move right
-                            //} else {
-                              //  enemy.movingRight = false; // Change direction
-                            //}
-                        //} else {
-                          //  if (enemy.x - enemySpeed >= platform.x) {
-                            //    enemy.x -= enemySpeed; // Move left
-                            //} else {
-                            //    enemy.movingRight = true; // Change direction
-                           // }
-                       // }
-                   // }
+                    
                 }
         
             });
