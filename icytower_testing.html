@@ -61,6 +61,12 @@
 
         let platformIndex = 1; // A global index counter for platforms
 
+        // Some of the platforms should be wider. Chose random logic.
+        function getRandomWidth() {
+            const widths = [150, 200, 250];
+            return widths[Math.floor(Math.random() * widths.length)];
+        }
+
         // Platforms
         let platforms = [];
         for(let i = 0; i < 10; i++) {
@@ -71,7 +77,7 @@
             platforms.push({
                 x: Math.random() * (canvas.width - 50),
                 y: initialPlatformY - (gapInPixels + platformHeight) * i,
-                width: 150,
+                width: getRandomWidth(), // Some of the platforms should be wider. Chose random logic.
                 height: platformHeight,
                 index: platformIndex++,
                 score_been_used: false,
@@ -186,7 +192,7 @@
                 platforms.push({
                     x: Math.random() * (canvas.width - 50),
                     y: initialPlatformY - (gapInPixels + platformHeight) * i,
-                    width: 150,
+                    width: getRandomWidth(), // Some of the platforms should be wider. Chose random logic.
                     height: platformHeight,
                     index: platformIndex++,
                     score_been_used: false, 
@@ -255,6 +261,7 @@
                         platform.x = Math.random() * (canvas.width - platform.width);
                         platform.timeOnPlatform = 0; // Reset the time on platform
                         platform.enemy = generateEnemy();
+                        
                     }
                 });
             }
