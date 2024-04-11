@@ -84,7 +84,11 @@
                 timeOnPlatform: 0,
                 falling: false,
                 hasEnemy: hasEnemy, // Indicates if this platform has an enemy
-                enemy: generateEnemy()
+                enemy: generateEnemy(),
+                originalY: initialPlatformY - (gapInPixels + platformHeight) * i, // track original Y position, if a platform will be a moving platform
+                is_moving: Math.random() < 0.06, // 6% of the platforms should move up and down.
+                move_distance: 25, // max movement distance
+                move_direction: 1 // moving direction- 1 for up, -1 for down
             });
         }
 
@@ -198,7 +202,11 @@
                     score_been_used: false, 
                     timeOnPlatform: 0,
                     falling: false,
-                    enemy: generateEnemy()
+                    enemy: generateEnemy(),
+                    originalY: initialPlatformY - (gapInPixels + platformHeight) * i, // track original Y position, if a platform will be a moving platform
+                    is_moving: Math.random() < 0.06, // 6% of the platforms should move up and down.
+                    move_distance: 25, // max movement distance
+                    move_direction: 1 // moving direction- 1 for up, -1 for down
                 });
             }
             updateGame(); // Start the game loop again
@@ -261,7 +269,8 @@
                         platform.x = Math.random() * (canvas.width - platform.width);
                         platform.timeOnPlatform = 0; // Reset the time on platform
                         platform.enemy = generateEnemy();
-                        
+                        platform.originalY = platform.y; // Reset the original Y for movement logic
+                        platform.is_moving = Math.random() < 0.06; // 6% of the platforms should move up and down.
                     }
                 });
             }
@@ -292,6 +301,14 @@
                         player.y + player.height > platform.y + platform.enemy.y
                     ) {
                         is_dead = true;
+                    }
+                }
+                if (platform.is_moving) {
+                    platform.y += platform.move_direction;
+            
+                    // Reverse direction if the platform has moved it's distance
+                    if (platform.y <= platform.originalY - platform.move_distance || platform.y >= platform.originalY + platform.move_distance) {
+                        platform.move_direction *= -1;
                     }
                 }
             });
